@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XR Mod Installer</title>
+
+<style>
+body {
+  margin: 0;
+  background: #0d0d0f;
+  font-family: Arial, sans-serif;
+  color: #e5e5e5;
+}
+
+/* HEADER */
+.header {
+  padding: 16px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  border-bottom: 1px solid #1f1f1f;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 15px;
+}
+
+/* INPUT */
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #222;
+  background: #111;
+  color: white;
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: none;
+  background: #2e2e2e;
+  color: white;
+}
+
+button:hover {
+  background: #3a3a3a;
+  cursor: pointer;
+}
+
+.hidden { display: none; }
+
+/* MOD CARD */
+.mod {
+  background: #111;
+  padding: 14px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #1f1f1f;
+}
+
+.mod:hover {
+  background: #181818;
+  cursor: pointer;
+}
+
+.title {
+  font-weight: bold;
+}
+
+.desc {
+  font-size: 13px;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+/* POPUP */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* TERMINAL */
+.terminal {
+  width: 90%;
+  max-width: 380px;
+  background: #000;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.output {
+  height: 180px;
+  overflow-y: auto;
+  font-size: 12px;
+  color: #00ff9c;
+}
+
+.line {
+  margin-bottom: 3px;
+}
+
+.termInput {
+  width: 100%;
+  padding: 10px;
+  background: #111;
+  border: none;
+  color: #00ff9c;
+  margin-top: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">XR Access</div>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="login">
+  <input id="user" placeholder="Username">
+  <input id="pass" type="password" placeholder="Password">
+  <button onclick="login()">Sign In</button>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="hidden">
+  <p>Is this you?</p>
+  <b id="profileName"></b>
+  <button onclick="next('mods')">Confirm</button>
+</div>
+
+<!-- MODS -->
+<div id="mods" class="hidden">
+
+  <div class="mod" onclick="openInstall('Quartz Menu')">
+    <div class="title">Quartz Menu</div>
+    <div class="desc">Advanced VR mod interface system</div>
+  </div>
+
+  <div class="mod" onclick="openInstall('Speed Boost')">
+    <div class="title">Speed Boost</div>
+    <div class="desc">Increase movement speed</div>
+  </div>
+
+  <div class="mod" onclick="openInstall('Fly Mode')">
+    <div class="title">Fly Mode</div>
+    <div class="desc">Fly freely in-game</div>
+  </div>
+
+  <div class="mod" onclick="openInstall('No Clip')">
+    <div class="title">No Clip</div>
+    <div class="desc">Walk through walls</div>
+  </div>
+
+  <div class="mod" onclick="openInstall('Infinite Battery')">
+    <div class="title">Infinite Battery</div>
+    <div class="desc">Unlimited headset power</div>
+  </div>
+
+  <div class="mod" onclick="openInstall('Headset AntiBrick')">
+    <div class="title">Headset AntiBrick</div>
+    <div class="desc">Prevents and fixes headset bricks</div>
+  </div>
+
+</div>
+
+</div>
+
+<!-- TERMINAL POPUP -->
+<div id="popup" class="popup">
+  <div class="terminal">
+    <div class="output" id="output"></div>
+    <input id="termInput" class="termInput" placeholder="Enter game name..." onkeydown="handleEnter(event)">
+  </div>
+</div>
+
+<script>
+let currentMod = "";
+
+function login() {
+  let user = document.getElementById("user").value;
+  let pass = document.getElementById("pass").value;
+
+  if(!user || !pass){
+    alert("Enter username and password");
+    return;
+  }
+
+  document.getElementById("profileName").innerText = user;
+  next("profile");
+}
+
+function next(id) {
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("profile").classList.add("hidden");
+  document.getElementById("mods").classList.add("hidden");
+
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function openInstall(mod) {
+  currentMod = mod;
+  document.getElementById("popup").style.display = "flex";
+  document.getElementById("output").innerHTML = "";
+  document.getElementById("termInput").value = "";
+  document.getElementById("termInput").disabled = false;
+}
+
+function log(text) {
+  let line = document.createElement("div");
+  line.className = "line";
+  line.innerText = "> " + text;
+
+  let out = document.getElementById("output");
+  out.appendChild(line);
+  out.scrollTop = out.scrollHeight;
+}
+
+function handleEnter(e) {
+  if(e.key === "Enter"){
+    let game = e.target.value;
+    if(!game) return;
+
+    e.target.disabled = true;
+
+    let steps = [
+      `Injecting ${currentMod}.dll`,
+      `Inspecting ${game}.game`,
+      `Clang ${game}.exe`,
+      `Running on headset`,
+      `Injected`,
+      `Headset not bricked`
+    ];
+
+    let i = 0;
+
+    let interval = setInterval(() => {
+      log(steps[i]);
+      i++;
+
+      if(i >= steps.length){
+        clearInterval(interval);
+      }
+    }, 800);
+  }
+}
+</script>
+
+</body>
+</html>
